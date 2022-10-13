@@ -11,17 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-apiVersion: "sparkoperator.k8s.io/v1beta2"
-kind: SparkApplication
-metadata:
-  name: "{{ package_name }}"
-spec:
-  type: Python
-  pythonVersion: "3"
-  mode: cluster
-  nodeSelector:
-    "{{ var.value.spark_task_node_selector.key }}": "{{ var.value.spark_task_node_selector.value }}"
-  image: "{{ var.value.image }}
-  
+FROM docker.4pd.io/openaios/ailake/deltalake-1.2.1-py-3.8:v0.1.0
+
+USER root
+
+COPY data/userdata1.parquet ${HOME}/work/
+
+COPY app.py ${HOME}/work/
+
+RUN fix-permissions "${HOME}"
+
+USER ${NB_UID}
+WORKDIR "${HOME}"
