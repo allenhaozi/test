@@ -1,0 +1,4 @@
+artifact_location: file:///Users/mahao/openaios/github.com/allenhaozi/test/pandas_iris_01/mlruns/1
+experiment_id: '1'
+lifecycle_stage: active
+name: pandas_iris_01

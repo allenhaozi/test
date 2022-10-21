@@ -1,2 +1,0 @@
-[kedro.project_commands]
-demo = kedro_plugin_demo.plugin:commands

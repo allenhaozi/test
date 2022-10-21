@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app.kubernetes.io/name: hackathon-pod-executor	
+    app.kubernetes.io/version: v0.0.1
+    app.kubernetes.io/component: lego-team	
+  name:  "{{ node_name }}-{{ macros.time.time() }}"
+  namespace: default
+spec:
+  containers:
+  - env:
+    - name: MY_NODE_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: spec.nodeName
+    - name: MY_POD_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.name
+    - name: MY_POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.namespace
+    - name: MY_POD_IP
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: status.podIP
+    image: {{ run_config.KubernetesPodOperator.spec.image }}
+    imagePullPolicy: IfNotPresent
+    name: "test1"
+    resources:
+      limits:
+        cpu: 50m
+        memory: 100M
+      requests:
+        cpu: 50m
+        memory: 100M

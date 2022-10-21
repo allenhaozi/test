@@ -1,8 +1,8 @@
 Metadata-Version: 2.1
-Name: kedro-plugin-demo
+Name: kedro-hackathon
 Version: 0.0.1
-Summary: kedro plugin demo
-Home-page: https://github.com/allenhaozi/exquisite-mlops-production
+Summary: 2022 4paradigm hackathon gorgeous code
+Home-page: https://gitlab.4pd.io/openaios
 Author: allen
 License: Apache Software License (Apache 2.0)
 Platform: UNKNOWN

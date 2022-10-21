@@ -13,15 +13,8 @@
 # limitations under the License.
 #
 
+ 
 apiVersion: "sparkoperator.k8s.io/v1beta2"
 kind: SparkApplication
 metadata:
-  name: "pandas_iris_01"
-spec:
-  type: Python
-  pythonVersion: "3"
-  mode: cluster
-  nodeSelector:
-    "{{ var.value.key }}": "{{ var.value.value }}"
-  image: "harbor.docker.4pd.io/openaios/load_data.tar:v0.0.1
-  
+  name: "

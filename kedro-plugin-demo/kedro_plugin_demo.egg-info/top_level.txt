@@ -1,1 +1,0 @@
-kedro_plugin_demo

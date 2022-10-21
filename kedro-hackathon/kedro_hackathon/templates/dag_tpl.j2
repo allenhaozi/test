@@ -1,0 +1,182 @@
+# 2022 4paramdigm.com Hackathon
+#  LEGO Team
+# 
+# Default settings applied to all tasks
+
+# [START import_module]
+from datetime import datetime, timedelta
+from airflow import DAG
+from airflow.models import Variable
+from pathlib import Path
+import jinja2
+from slugify import slugify
+import os
+
+{% if config.SparkKubernetesOperator %}
+from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import \
+    SparkKubernetesOperator
+from airflow.providers.cncf.kubernetes.sensors.spark_kubernetes import \
+    SparkKubernetesSensor
+{% endif %}
+{% if config.SparkKubernetesOperator %}
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import \
+    KubernetesPodOperator
+from kubernetes.client import models as k8s
+{% endif %}
+# [END import_module]
+
+def gen_file(jinja2_file, target_path, run_config):
+    """ Jinja2 tempalte render function
+
+    Args:
+        jinja2_file: jinja2 template file
+        target_path: jinja2 rendered result file
+        run_config:  template + run_config = executor yaml file
+    """
+    print(f"got jinja2 template file: {jinja2_file}")
+    print(f"got jinja2 template rendered result file: {target_path}")
+    print(f"got jinja2 template run_config: {run_config}")
+    jinja_file = Path(jinja2_file).resolve()
+    
+    loader = jinja2.FileSystemLoader(jinja_file.parent)
+    jinja_env = jinja2.Environment(autoescape=True,
+                                   loader=loader,
+                                   lstrip_blocks=True)
+    jinja_env.filters["slugify"] = slugify
+
+    template = jinja_env.get_template(jinja_file.name)
+
+    # render template
+    template.stream(run_config=run_config).dump(str(target_path))
+    print("render template success")
+
+
+{% if config.SparkKubernetesOperator  %}
+def pre_execute_spark_operator(context):
+    cur_path = os.path.abspath(os.path.driname(__file__)) 
+
+    jinja2_file = f"{cur_path}/spark.operator.template.yaml"
+    target_path = f"{cur_path}/spark.operator.yaml"
+    gen_file(jinja2_file, target_path, context['params'])
+{% endif %}
+
+{% if config.KubernetesPodOperator %}
+# [START kubernetes pod operator]
+
+def get_volume():
+    volume = k8s.V1Volume(
+        name='catalog',
+        empty_dir=k8s.V1EmptyDirVolumeSource(medium="Memory",size_limit="500Mi"),
+    )
+    return volume
+
+def get_volume_mount():
+    volume_mount = k8s.V1VolumeMount(
+        name='catalog', mount_path='/dev/shm'
+    )
+    return volume_mount
+
+
+def get_in_cluster():
+    """
+    default `in_cluster` is True
+    Returns:
+        boolean : True
+    """
+    in_cluster = Variable.get('in_cluster', "True")
+    if in_cluster.lower() == "false":
+        return False
+
+def pre_execute_kube_pod_operator(context):
+    cur_path = os.path.abspath(os.path.driname(__file__)) 
+
+    jinja2_file = f"{cur_path}/pod.template.yaml"
+    target_path = f"{cur_path}/pod.yaml"
+    gen_file(jinja2_file, target_path, context['params'])
+
+def gen_k8s_pod_operator(namespace,task_name):
+
+    cur_path = os.path.abspath(os.path.driname(__file__)) 
+
+    o = KubernetesPodOperator(
+        task_id=task_name,
+        name=task_name,
+        do_xcom_push=True,
+        is_delete_operator_pod=False,
+        log_events_on_failure=True,
+        get_logs=True,
+        image='',
+        image_pull_policy='Always',
+        in_cluster=get_in_cluster(),
+        pod_template_file=f"{cur_path}/pod.yaml",
+        pre_execute=pre_execute_kube_pod_operator,
+    )
+    return o
+
+# [END kubernetes pod operator]
+{% endif %}
+
+# [START instantiate_dag]
+default_args = {
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 3,
+    "retry_delay": timedelta(minutes=5),
+    "max_active_runs": 1,
+}
+
+with DAG(
+        "{{ pipeline_name }}",
+        default_args=default_args,
+        description="",
+        start_date=datetime(2022, 10, 20),
+        schedule_interval=None,
+        catchup=False,
+        dagrun_timeout=timedelta(minutes=600),
+) as dag:
+
+    # [START build dag operator]
+    tasks = {}
+    cur_path = os.path.abspath(os.path.driname(__file__)) 
+    {% for node in pipeline.nodes %}
+    {% if node_tags[node.name] == config.SparkKubernetesOperator %}
+    tasks["{{ node.name | safe | slugify }}"] = {{ node_tags[node.name] }}(
+        task_id="{{ node.name | safe | slugify  }}",
+        namespace="airflow",
+        application_file="{{ node.name | safe | slugify }}_tpl.yaml",
+        do_xcom_push=True,
+        dag=dag,
+        pod_template_file=f"{cur_path}/pod.yaml",
+        pre_execute=pre_execute_spark_operator,
+    )
+    # TODO: add sensor tasks["{{ node.name | safe | slugify }}-sensor"] to spark operator
+    tasks["{{ node.name | safe | slugify }}-sensor"] = {{ node_tags[node.name] | replace("Operator", "Sensor") }}(
+        task_id="{{ node.name | safe | slugify  }}-sensor",
+        namespace="airflow",
+        attach_log=True,
+        application_name=
+            "{{ '{{' }} ti.xcom_pull(task_ids='{{ node.name | safe | slugify  }}')['metadata']['name'] {{ '}}' }}",
+        dag=dag,
+        poke_interval=60,
+        retries=3,
+    )
+
+    {% endif %}
+    {% if node_tags[node.name] == config.KubernetesPodOperator %}
+    tasks["{{ node.name | safe | slugify }}"] = gen_k8s_pod_operator()
+    {% endif %}
+    {% endfor %}
+    # [END build dag operator]
+    # [START dag orchestration]
+    # TODO: double check airflow dag 
+    {% for parent_node, child_nodes in dependencies.items() -%}
+    {% for child in child_nodes %}
+    tasks["{{ parent_node.name | safe | slugify }}"] >> tasks["{{ child.name | safe | slugify }}"]
+    {% endfor %}
+    {%- endfor %}
+    {% for parent, child in append_dags.items() %}
+    tasks["{{ parent | safe | slugify }}"] >> tasks["{{ child | safe | slugify }}"]
+    {% endfor %}
+    # [END dag orchestration]
+# [END instantiate_dag]

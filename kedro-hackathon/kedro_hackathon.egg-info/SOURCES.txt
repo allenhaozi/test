@@ -1,0 +1,16 @@
+LICENSE
+README.md
+setup.py
+kedro_hackathon/__init__.py
+kedro_hackathon/dag_tpl_render.py
+kedro_hackathon/kubernetes_pod_operator_tpl_render.py
+kedro_hackathon/plugin.py
+kedro_hackathon/render_spark_operator_tpl.py
+kedro_hackathon/utils.py
+kedro_hackathon.egg-info/PKG-INFO
+kedro_hackathon.egg-info/SOURCES.txt
+kedro_hackathon.egg-info/dependency_links.txt
+kedro_hackathon.egg-info/entry_points.txt
+kedro_hackathon.egg-info/not-zip-safe
+kedro_hackathon.egg-info/requires.txt
+kedro_hackathon.egg-info/top_level.txt

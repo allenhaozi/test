@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    airflow_version: 2.3.3
+    already_checked: "True"
+    dag_id: hackathon-tutorial
+    job-name: openaios
+    kubernetes_pod_operator: "True"
+    run_id: manual__2022-10-21T1253570800-d7edede96
+    task_id: pre_execute_test
+    try_number: "1"
+  name: {{ .Values.jobName }}
+spec:
+  containers:
+  - args:
+    - run
+    command:
+    - kedro
+    image: harbor.4pd.io/openaios/xz-jssp:0.1.0
+    imagePullPolicy: IfNotPresent
+    name: base
+    resources:
+      limits:
+        cpu: 50m
+        memory: 100M
+      requests:
+        cpu: 50m
+        memory: 100M
+    volumeMounts:
+    - mountPath: /home/kedro/conf/base
+      name: config
+      subPath: catalog.yml
+  volumes:
+  - configMap:
+      defaultMode: 420
+      name: hackathon-catalog
+    name: config

@@ -10,15 +10,16 @@ from kedro.framework.project import pipelines, settings
 from kedro.framework.startup import ProjectMetadata
 from slugify import slugify
 
+from .dag_tpl_render import gen_dag_by_pipeline
 from .utils import Convertor
 
 
-@click.group(name="JSON")
+@click.group(name="Hackathon")
 def commands():
     pass
 
 
-@commands.group(name="demo")
+@commands.group(name="hackathon")
 def demo_commands():
     pass
 
@@ -32,10 +33,45 @@ def to_json(metadata):
 
 
 @demo_commands.command()
+@click.option(
+    "-j",
+    "--jinja-file",
+    "jinja2_file",
+    type=click.Path(exists=True,
+                    readable=True,
+                    resolve_path=True,
+                    file_okay=True,
+                    dir_okay=False),
+    default=Path(__file__).parent / "templates/dag_tpl.j2",
+)
+@click.option(
+    "-b",
+    "--tpl-base-path",
+    "tpl_base_path",
+    type=click.Path(exists=True,
+                    readable=True,
+                    resolve_path=True,
+                    file_okay=False,
+                    dir_okay=True),
+    default=Path(__file__).parent / "templates",
+)
+@click.option(
+    "-p",
+    "--pipeline",
+    "pipeline_name",
+    type=str,
+    default="__default__",
+    required=False,
+    help="Pipeline name to pick.",
+)
 @click.pass_obj
-def print_metadata(metadata):
+def gen_dags(metadata: ProjectMetadata, jinja2_file, tpl_base_path,
+             pipeline_name):
     """Display the metadata"""
-    pprint(metadata)
+    pprint("start generate dag file")
+    pprint(f"jinja2_file:{jinja2_file}")
+    pprint(f"pipeline_name:{pipeline_name}")
+    gen_dag_by_pipeline(pipeline_name, jinja2_file, tpl_base_path)
 
 
 @demo_commands.command()
@@ -47,7 +83,7 @@ def print_metadata(metadata):
                     resolve_path=True,
                     file_okay=True,
                     dir_okay=False),
-    default=Path(__file__).parent / "demo_template.j2",
+    default=Path(__file__).parent / "spark_operator_tpl.j2",
 )
 @click.pass_obj
 def gen_tpl(metadata: ProjectMetadata, jinja_file):

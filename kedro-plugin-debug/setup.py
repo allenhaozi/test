@@ -4,7 +4,7 @@ from os import path
 
 from setuptools import setup
 
-name = "kedro-plugin-demo"
+name = "kedro-plugin-debug"
 here = path.abspath(path.dirname(__file__))
 
 # get package version
@@ -23,19 +23,20 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 setup(
     name=name,
     version=version,
-    description="kedro plugin demo",
+    description="Kedro-Plugin-Debug debug all about Kedro",
     long_description=readme,
     long_description_content_type="text/markdown",
-    url="https://github.com/allenhaozi/exquisite-mlops-production",
-    author="allen",
+    url="",
+    author="allenhaozi",
     python_requires=">=3.7, <3.11",
     install_requires=requires,
     license="Apache Software License (Apache 2.0)",
-    packages=["kedro_plugin_demo"],
-    package_data={"kedro_pugin_demo": ["kedro_pulgin_demo/demo_template.j2"]},
+    packages=["kedro_plugin_debug"],
+    package_data={"tpl": ["kedro_plugin_debug/template.j2"]},
     include_package_data=True,
     zip_safe=False,
     entry_points={
-        "kedro.project_commands": ["demo = kedro_plugin_demo.plugin:commands"]
+        "kedro.project_commands":
+        ["debug = kedro_plugin_debug.plugin:commands"]
     },
 )

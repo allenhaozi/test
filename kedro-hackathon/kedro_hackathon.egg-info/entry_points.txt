@@ -1,0 +1,2 @@
+[kedro.project_commands]
+hackathon = kedro_hackathon.plugin:commands
