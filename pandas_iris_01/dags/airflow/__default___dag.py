@@ -10,7 +10,6 @@ from airflow.models import Variable
 from pathlib import Path
 import jinja2
 from slugify import slugify
-import os
 
 
 from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import \
@@ -62,6 +61,7 @@ def pre_execute_spark_operator(context):
 
 
 # [START kubernetes pod operator]
+
 def get_in_cluster():
     """
     default `in_cluster` is True
@@ -73,15 +73,15 @@ def get_in_cluster():
         return False
 
 def pre_execute_kube_pod_operator(context):
-    cur_path = os.path.abspath(os.path.driname(__file__)) 
+    cur_path = Path(__file__)
 
     jinja2_file = f"{cur_path}/pod.template.yaml"
     target_path = f"{cur_path}/pod.yaml"
     gen_file(jinja2_file, target_path, context['params'])
 
-def gen_k8s_pod_operator(namespace,task_name):
+def gen_k8s_pod_operator(task_name):
 
-    cur_path = os.path.abspath(os.path.driname(__file__)) 
+    cur_path = Path(__file__)
 
     o = KubernetesPodOperator(
         task_id=task_name,
@@ -112,7 +112,7 @@ default_args = {
 }
 
 with DAG(
-        "",
+        "hackathon-lego-team",
         default_args=default_args,
         description="",
         start_date=datetime(2022, 10, 20),
@@ -123,7 +123,6 @@ with DAG(
 
     # [START build dag operator]
     tasks = {}
-    cur_path = os.path.abspath(os.path.driname(__file__)) 
 
 
     tasks["split-data"] = SparkKubernetesOperator(
@@ -151,8 +150,31 @@ with DAG(
 
 
 
+    tasks["make-predictions"] = gen_k8s_pod_operator('make_predictions')
 
-    tasks["make-predictions"] = gen_k8s_pod_operator()
+
+
+    tasks["report-accuracy"] = SparkKubernetesOperator(
+        task_id="report-accuracy",
+        namespace="airflow",
+        application_file="report-accuracy_tpl.yaml",
+        do_xcom_push=True,
+        dag=dag,
+        pod_template_file=f"{cur_path}/pod.yaml",
+        pre_execute=pre_execute_spark_operator,
+    )
+    # TODO: add sensor tasks["report-accuracy-sensor"] to spark operator
+    tasks["report-accuracy-sensor"] = SparkKubernetesSensor(
+        task_id="report-accuracy-sensor",
+        namespace="airflow",
+        attach_log=True,
+        application_name=
+            "{{ ti.xcom_pull(task_ids='report-accuracy')['metadata']['name'] }}",
+        dag=dag,
+        poke_interval=60,
+        retries=3,
+    )
+
 
 
     # [END build dag operator]
@@ -161,8 +183,9 @@ with DAG(
 
     tasks["split-data"] >> tasks["make-predictions"]
 
+    tasks["split-data"] >> tasks["report-accuracy"]
 
-    tasks["split-data"] >> tasks["split-data-sensor"]
+    tasks["make-predictions"] >> tasks["report-accuracy"]
 
     # [END dag orchestration]
 # [END instantiate_dag]

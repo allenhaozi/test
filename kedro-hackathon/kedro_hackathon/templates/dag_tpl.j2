@@ -10,7 +10,7 @@ from airflow.models import Variable
 from pathlib import Path
 import jinja2
 from slugify import slugify
-import os
+import uuid
 
 {% if config.SparkKubernetesOperator %}
 from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import \
@@ -18,14 +18,14 @@ from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import \
 from airflow.providers.cncf.kubernetes.sensors.spark_kubernetes import \
     SparkKubernetesSensor
 {% endif %}
-{% if config.SparkKubernetesOperator %}
+{% if config.KubernetesPodOperator %}
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import \
     KubernetesPodOperator
 from kubernetes.client import models as k8s
 {% endif %}
 # [END import_module]
 
-def gen_file(jinja2_file, target_path, run_config):
+def gen_file(task_id,jinja2_file, target_path, run_config):
     """ Jinja2 tempalte render function
 
     Args:
@@ -46,8 +46,11 @@ def gen_file(jinja2_file, target_path, run_config):
 
     template = jinja_env.get_template(jinja_file.name)
 
+    random_id = str(uuid.uuid4())[1:10]
+    task_id = task_id.replace("_","-")
+    task_id = f"{task_id}-{random_id}"
     # render template
-    template.stream(run_config=run_config).dump(str(target_path))
+    template.stream(task_id=task_id,run_config=run_config).dump(str(target_path))
     print("render template success")
 
 
@@ -63,20 +66,6 @@ def pre_execute_spark_operator(context):
 {% if config.KubernetesPodOperator %}
 # [START kubernetes pod operator]
 
-def get_volume():
-    volume = k8s.V1Volume(
-        name='catalog',
-        empty_dir=k8s.V1EmptyDirVolumeSource(medium="Memory",size_limit="500Mi"),
-    )
-    return volume
-
-def get_volume_mount():
-    volume_mount = k8s.V1VolumeMount(
-        name='catalog', mount_path='/dev/shm'
-    )
-    return volume_mount
-
-
 def get_in_cluster():
     """
     default `in_cluster` is True
@@ -88,27 +77,26 @@ def get_in_cluster():
         return False
 
 def pre_execute_kube_pod_operator(context):
-    cur_path = os.path.abspath(os.path.driname(__file__)) 
+    cur_path = Path(__file__).parent
+    ti = context['ti']
+    task_id = ti.task_id
+    jinja2_file = f"{cur_path}/{task_id}.template.yaml"
+    target_path = f"{cur_path}/{task_id}.pod.yaml"
+    gen_file(task_id,jinja2_file, target_path, context['params'])
 
-    jinja2_file = f"{cur_path}/pod.template.yaml"
-    target_path = f"{cur_path}/pod.yaml"
-    gen_file(jinja2_file, target_path, context['params'])
-
-def gen_k8s_pod_operator(namespace,task_name):
-
-    cur_path = os.path.abspath(os.path.driname(__file__)) 
-
+def gen_k8s_pod_operator(task_name):
+    cur_path = Path(__file__).parent
     o = KubernetesPodOperator(
         task_id=task_name,
         name=task_name,
-        do_xcom_push=True,
+        do_xcom_push=False,
         is_delete_operator_pod=False,
         log_events_on_failure=True,
         get_logs=True,
         image='',
         image_pull_policy='Always',
         in_cluster=get_in_cluster(),
-        pod_template_file=f"{cur_path}/pod.yaml",
+        pod_template_file=f"{cur_path}/{task_name}.pod.yaml",
         pre_execute=pre_execute_kube_pod_operator,
     )
     return o
@@ -127,7 +115,7 @@ default_args = {
 }
 
 with DAG(
-        "{{ pipeline_name }}",
+        "{{ dag_name }}",
         default_args=default_args,
         description="",
         start_date=datetime(2022, 10, 20),
@@ -138,7 +126,6 @@ with DAG(
 
     # [START build dag operator]
     tasks = {}
-    cur_path = os.path.abspath(os.path.driname(__file__)) 
     {% for node in pipeline.nodes %}
     {% if node_tags[node.name] == config.SparkKubernetesOperator %}
     tasks["{{ node.name | safe | slugify }}"] = {{ node_tags[node.name] }}(
@@ -161,10 +148,9 @@ with DAG(
         poke_interval=60,
         retries=3,
     )
-
     {% endif %}
     {% if node_tags[node.name] == config.KubernetesPodOperator %}
-    tasks["{{ node.name | safe | slugify }}"] = gen_k8s_pod_operator()
+    tasks["{{ node.name | safe | slugify }}"] = gen_k8s_pod_operator('{{ node.name }}')
     {% endif %}
     {% endfor %}
     # [END build dag operator]
@@ -175,8 +161,5 @@ with DAG(
     tasks["{{ parent_node.name | safe | slugify }}"] >> tasks["{{ child.name | safe | slugify }}"]
     {% endfor %}
     {%- endfor %}
-    {% for parent, child in append_dags.items() %}
-    tasks["{{ parent | safe | slugify }}"] >> tasks["{{ child | safe | slugify }}"]
-    {% endfor %}
     # [END dag orchestration]
 # [END instantiate_dag]

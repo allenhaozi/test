@@ -59,7 +59,7 @@ def make_predictions(X_train: pd.DataFrame, X_test: pd.DataFrame,
     return y_pred
 
 
-def report_accuracy(y_pred: pd.Series, y_test: pd.Series, z_pred: pd.Series):
+def report_accuracy(y_pred: pd.Series, y_test: pd.Series):
     """Calculates and logs the accuracy.
 
     Args:
@@ -69,16 +69,3 @@ def report_accuracy(y_pred: pd.Series, y_test: pd.Series, z_pred: pd.Series):
     accuracy = (y_pred == y_test).sum() / len(y_test)
     logger = logging.getLogger(__name__)
     logger.info("Model has accuracy of %.3f on test data.", accuracy)
-
-
-def simulate(y_pred: pd.Series, z_test: pd.Series):
-    pass
-
-
-def make_predictions_2(X_train: pd.DataFrame,
-                       X_test: pd.DataFrame) -> pd.Series:
-    """Uses 1-nearest neighbour classifier to create predictions."""
-
-    z_pred = pd.Series()
-
-    return z_pred

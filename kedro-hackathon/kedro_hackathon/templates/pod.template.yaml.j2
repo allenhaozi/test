@@ -5,7 +5,7 @@ metadata:
     app.kubernetes.io/name: hackathon-pod-executor	
     app.kubernetes.io/version: v0.0.1
     app.kubernetes.io/component: lego-team	
-  name:  "{{ node_name }}-{{ macros.time.time() }}"
+  name: {{ '{{' }} task_id {{ '}}' }}
   namespace: default
 spec:
   containers:
@@ -30,13 +30,30 @@ spec:
         fieldRef:
           apiVersion: v1
           fieldPath: status.podIP
-    image: {{ run_config.KubernetesPodOperator.spec.image }}
+    image: {{ '{{' }} run_config.spec.image {{ '}}' }}
+    command:
+    - kedro
+    args:
+    - run 
+    - -n
+    - {{ node.name }}
+    - --from-inputs
+    - {{ node.inputs | join(',') }}
     imagePullPolicy: IfNotPresent
     name: "test1"
     resources:
       limits:
-        cpu: 50m
-        memory: 100M
+        cpu: 1 
+        memory: 1G
       requests:
-        cpu: 50m
-        memory: 100M
+        cpu: 1
+        memory: 1G
+    volumeMounts:
+    - mountPath: /home/kedro/conf/base
+      name: config
+  restartPolicy: OnFailure
+  volumes:
+    - configMap:
+        defaultMode: 420
+        name: hackathon-catalog
+      name: config
