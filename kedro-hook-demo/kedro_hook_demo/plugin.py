@@ -1,44 +1,69 @@
-import logging
-from pathlib import Path
-from typing import Any, Dict, List
-
 from click import secho
-from kedro.framework.cli.cli import KedroCLI
-from kedro.framework.cli.hooks import cli_hook_impl
-from kedro.framework.startup import ProjectMetadata
+from kedro.framework.context import KedroContext
+from kedro.framework.hooks import hook_impl
 from kedro.io import DataCatalog
-
-from .tools import _get_cli_structure, _mask_kedro_cli
-
-logger = logging.getLogger(__name__)
+from kedro.pipeline import Pipeline
+from kedro.pipeline.node import Node
 
 
-class KedroHookDemoCLIHooks:
-    @cli_hook_impl
-    def before_command_run(self, project_metadata: ProjectMetadata,
-                           command_args: List[str]):
-        """Hook implementation to check hook strategy: before_command_run"""
-        try:
-            # get KedroCLI and its structure from actual project root
-            cli = KedroCLI(project_path=Path.cwd())
-            cli_struct = _get_cli_structure(cli_obj=cli, get_help=False)
-            masked_command_args = _mask_kedro_cli(cli_struct=cli_struct,
-                                                  command_args=command_args)
-            main_command = masked_command_args[
-                0] if masked_command_args else "kedro"
-            if not project_metadata:  # in package mode
-                return
+class KedroHookDemoHooks:
+    @hook_impl
+    def after_context_created(
+        self,
+        context: KedroContext,
+        *args,
+        **kwargs,
+    ) -> None:
+        """Hooks to be invoked after a `KedroContext` is created. This is the earliest
+        hook triggered within a Kedro run. The `KedroContext` stores useful information
+        such as `credentials`, `config_loader` and `env`.
+        Args:
+            context: The context that was created.
+        """
 
-            secho("this is hook")
-            secho("before_command_run", fg="green")
-            secho(main_command, fg="green")
+        secho("catalog created start", fg="green")
+        print(args)
+        print(kwargs)
+        secho("catalog created end", fg="green")
 
-        except Exception as exc:  # pylint: disable=broad-except
-            logger.warning(
-                "Something went wrong in hook implementation to send command run data to Heap. "
-                "Exception: %s",
-                exc,
-            )
+    @hook_impl
+    def after_catalog_created(self, catalog: DataCatalog) -> None:
+        secho("catalog created start", fg="green")
+        for item in catalog.list():
+            print(item)
+        secho("catalog created end", fg="red")
+
+    @hook_impl
+    def before_node_run(self, node: Node, *args, **kwargs) -> None:
+        secho("before_node_run start", fg="green")
+        secho(node.name, fg="red")
+        print(args)
+        print(kwargs)
+        secho("before_node_run", fg="green")
+
+    @hook_impl
+    def after_node_run(self, node: Node, *args, **kwargs) -> None:
+        secho("after_node_run start", fg="green")
+        secho(node.name, fg="red")
+        print(args)
+        print(kwargs)
+        secho("after_node_run end", fg="green")
+
+    @hook_impl
+    def on_node_error(self, node: Node, *args, **kwargs) -> None:
+        secho("on_node_err start", fg="green")
+        secho(node.name, fg="red")
+        print(args)
+        print(kwargs)
+        secho("on_node_err end", fg="green")
+
+    @hook_impl
+    def before_pipeline_run(sefl, pipeline: Pipeline, *args, **kwargs) -> None:
+        secho("before_pipeline_run start", fg="green")
+        secho(pipeline.to_json(), fg="red")
+        print(args)
+        print(kwargs)
+        secho("before_pipeline_run end", fg="green")
 
 
-cli_hooks = KedroHookDemoCLIHooks()
+demo_hooks = KedroHookDemoHooks()

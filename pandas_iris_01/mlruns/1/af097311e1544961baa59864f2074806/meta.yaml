@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/mahao/openaios/github.com/allenhaozi/test/pandas_iris_01/mlruns/1/af097311e1544961baa59864f2074806/artifacts
+end_time: 1666751922086
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: af097311e1544961baa59864f2074806
+run_uuid: af097311e1544961baa59864f2074806
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1666751922047
+status: 3
+tags: []
+user_id: mahao

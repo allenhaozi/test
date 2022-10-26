@@ -35,6 +35,9 @@ setup(
     include_package_data=True,
     zip_safe=False,
     entry_points={
-        "kedro.cli_hooks": ["kedro-hook-demo = kedro_hook_demo.plugin:cli_hooks"]
+        "kedro.cli_hooks": ["kedro-hook-demo = kedro_hook_demo.cli:cli_hooks"],
+        "kedro.hooks": [
+            "kedro-hook-demo = kedro_hook_demo.plugin:demo_hooks",
+        ],
     },
 )
