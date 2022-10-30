@@ -8,7 +8,14 @@ from typing import Any, Dict, Tuple
 
 import numpy as np
 import pandas as pd
+from click import secho
 
+#from kedro_extra_datasets.datasets.demo.my_own_dataset import MyOwnDataset
+
+def pre_process(data: pd.DataFrame) -> None:
+    secho("this is my test node",fg="green")
+    secho("this test node test my custom dataset",fg="green")
+    print(data)
 
 def split_data(
     data: pd.DataFrame, parameters: Dict[str, Any]
@@ -22,9 +29,10 @@ def split_data(
         Split data.
     """
 
-    data_train = data.sample(
-        frac=parameters["train_fraction"], random_state=parameters["random_state"]
-    )
+    print(parameters)
+
+    data_train = data.sample(frac=parameters["train_fraction"],
+                             random_state=parameters["random_state"])
     data_test = data.drop(data_train.index)
 
     X_train = data_train.drop(columns=parameters["target_column"])
@@ -35,9 +43,8 @@ def split_data(
     return X_train, X_test, y_train, y_test
 
 
-def make_predictions(
-    X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series
-) -> pd.Series:
+def make_predictions(X_train: pd.DataFrame, X_test: pd.DataFrame,
+                     y_train: pd.Series) -> pd.Series:
     """Uses 1-nearest neighbour classifier to create predictions.
 
     Args:
@@ -53,8 +60,7 @@ def make_predictions(
     X_test_numpy = X_test.to_numpy()
 
     squared_distances = np.sum(
-        (X_train_numpy[:, None, :] - X_test_numpy[None, :, :]) ** 2, axis=-1
-    )
+        (X_train_numpy[:, None, :] - X_test_numpy[None, :, :])**2, axis=-1)
     nearest_neighbour = squared_distances.argmin(axis=0)
     y_pred = y_train.iloc[nearest_neighbour]
     y_pred.index = X_test.index

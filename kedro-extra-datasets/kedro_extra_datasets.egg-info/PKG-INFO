@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: kedro-extra-datasets
+Version: 0.0.1
+Summary: kedro dataset extension
+Home-page: https://github.com/allenhaozi/test
+Author: allen
+License: Apache Software License (Apache 2.0)
+Platform: UNKNOWN
+Requires-Python: >=3.7, <3.11
+Description-Content-Type: text/markdown
+
+# kedro extra datasets
+
+this is for test project
+

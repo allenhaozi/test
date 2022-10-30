@@ -45,3 +45,11 @@
 example_iris_data:
   type: pandas.CSVDataSet
   filepath: data/01_raw/iris.csv
+
+example_dev_dataset:
+  type: kedro_extra_datasets.datasets.demo.my_own_dataset.MyOwnDataset
+  file_path: data/01_raw/iris.csv
+  param1: "test params 1"
+  param2: false
+  extra:
+    data: "test params"

@@ -1,0 +1,9 @@
+README.md
+setup.py
+kedro_extra_datasets/__init__.py
+kedro_extra_datasets.egg-info/PKG-INFO
+kedro_extra_datasets.egg-info/SOURCES.txt
+kedro_extra_datasets.egg-info/dependency_links.txt
+kedro_extra_datasets.egg-info/not-zip-safe
+kedro_extra_datasets.egg-info/requires.txt
+kedro_extra_datasets.egg-info/top_level.txt
