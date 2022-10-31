@@ -14,5 +14,8 @@ for item in sys.path:
 
 
 metadata = bootstrap_project(Path.cwd())
+
+print(metadata)
+
 with KedroSession.create(metadata.package_name) as session:
-    session.run()
+    session.run(pipeline_name='__default__',node_names=['pre_process'],from_inputs=['example_dev_dataset'])
