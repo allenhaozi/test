@@ -5,11 +5,23 @@ generated using Kedro 0.18.3
 
 from kedro.pipeline import Pipeline, node, pipeline
 
-from .nodes import make_predictions, pre_process, report_accuracy, split_data
+from pandas_iris_02.deltalake import deltalake_task
+from pandas_iris_02.nodes import (
+    make_predictions,
+    pre_process,
+    report_accuracy,
+    split_data,
+)
 
 
 def create_pipeline(**kwargs) -> Pipeline:
     return pipeline([
+        node(
+            func=deltalake_task,
+            inputs=['parameters'],
+            outputs=None,
+            name='deltalake_task',
+        ),
         node(
             func=pre_process,
             inputs=["example_dev_dataset"],

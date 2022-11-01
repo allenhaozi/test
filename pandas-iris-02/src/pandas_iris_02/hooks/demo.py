@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from click import secho
 from kedro.framework.context import KedroContext
 from kedro.framework.hooks import hook_impl
@@ -21,10 +23,10 @@ class KedroHookDemoHooks:
             context: The context that was created.
         """
 
-        secho("catalog created start", fg="green")
+        secho("after context created start", fg="green")
         print(args)
         print(kwargs)
-        secho("catalog created end", fg="green")
+        secho("after context created end", fg="green")
 
     @hook_impl
     def after_catalog_created(self, catalog: DataCatalog) -> None:
@@ -39,7 +41,10 @@ class KedroHookDemoHooks:
         secho(node.name, fg="red")
         print(args)
         print(kwargs)
+        # mock test data
+        #data = {"before_node_run":"this is mock data from before_node_run"}
         secho("before_node_run", fg="green")
+        #return data
 
     @hook_impl
     def after_node_run(self, node: Node, *args, **kwargs) -> None:

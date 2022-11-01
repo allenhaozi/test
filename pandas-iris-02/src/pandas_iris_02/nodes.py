@@ -9,13 +9,17 @@ from typing import Any, Dict, Tuple
 import numpy as np
 import pandas as pd
 from click import secho
+from kedro.io import DataCatalog
 
 #from kedro_extra_datasets.datasets.demo.my_own_dataset import MyOwnDataset
 
-def pre_process(data: pd.DataFrame) -> None:
-    secho("this is my test node",fg="green")
+def pre_process(data: pd.DataFrame,*args,**kwargs) -> None:
+    secho("this is my test node start",fg="green")
     secho("this test node test my custom dataset",fg="green")
     print(data)
+    print(args)
+    print(kwargs)
+    secho("this is my test node end",fg="green")
 
 def split_data(
     data: pd.DataFrame, parameters: Dict[str, Any]
