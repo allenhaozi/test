@@ -9,6 +9,8 @@ s3_table_path = "s3a://deltalake/tutorial/kedro"
 
 
 def deltalake_task(parameters: Dict[str,Any]) -> None:
+    if True:
+        return
     spark = SparkSession.getActiveSession()
     data = spark.read.format("parquet").load(hdfs_dir)
     data.show()

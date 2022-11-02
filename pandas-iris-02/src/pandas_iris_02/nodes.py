@@ -11,7 +11,6 @@ import pandas as pd
 from click import secho
 from kedro.io import DataCatalog
 
-#from kedro_extra_datasets.datasets.demo.my_own_dataset import MyOwnDataset
 
 def pre_process(data: pd.DataFrame,*args,**kwargs) -> None:
     secho("this is my test node start",fg="green")

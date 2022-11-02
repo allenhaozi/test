@@ -6,6 +6,7 @@ generated using Kedro 0.18.3
 from kedro.pipeline import Pipeline, node, pipeline
 
 from pandas_iris_02.deltalake import deltalake_task
+from pandas_iris_02.iceberg import create_iceberg_table
 from pandas_iris_02.nodes import (
     make_predictions,
     pre_process,
@@ -16,6 +17,12 @@ from pandas_iris_02.nodes import (
 
 def create_pipeline(**kwargs) -> Pipeline:
     return pipeline([
+        node(
+            func=create_iceberg_table,
+            inputs=['parameters'],
+            outputs=None,
+            name='create_iceberg_table'
+        ),
         node(
             func=deltalake_task,
             inputs=['parameters'],

@@ -1,17 +1,11 @@
-spark.sql.extensions: io.delta.sql.DeltaSparkSessionExtension
-spark.sql.catalog.spark_catalog: org.apache.spark.sql.delta.catalog.DeltaCatalog
-
-spark.hadoop.fs.s3a.access.key: 
-spark.hadoop.fs.s3a.secret.key:
-spark.hadoop.fs.s3a.endpoint: 
-
-
-spark.sql.streaming.forceDeleteTempCheckpointLocation: True
-spark.sql.parquet.fs.optimized.committer.optimization-enabled: True
-spark.hadoop.fs.s3a.path.style.access: True
-spark.hadoop.fs.s3a.attempts.maximum: 3
-spark.hadoop.fs.s3a.connection.establish.timeout: 30000
-spark.hadoop.fs.s3a.connection.timeout: 30000
-spark.hadoop.fs.s3a.paging.maximum: 100
-spark.hadoop.fs.s3a.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
-spark.hadoop.fs.s3a.connection.ssl.enabled: False
+spark.sql.extensions: org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+spark.sql.catalog.hadoop: org.apache.iceberg.spark.SparkCatalog
+spark.sql.catalog.hadoop.type: hadoop
+spark.sql.catalog.hadoop.warehouse: /metaxis-6666/iceberg_warehouse
+spark.jars.packages: org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:1.0.0
+spark.sql.catalog.spark_catalog: org.apache.iceberg.spark.SparkSessionCatalog
+spark.sql.catalog.spark_catalog.type: hive
+spark.sql.catalog.demo: org.apache.iceberg.spark.SparkCatalog
+spark.sql.catalog.demo.type: hadoop
+spark.sql.catalog.demo.warehouse: /metaxis-6666/iceberg_warehouse
+spark.sql.defaultCatalog: demo
