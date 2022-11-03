@@ -21,4 +21,4 @@ def create_iceberg_table(parameters: Dict[str, Any]) -> None:
     ])
     spark = SparkSession.getActiveSession()
     df = spark.createDataFrame([], schema)
-    df.writeTo("demo.kedro").create()
+    df.writeTo("demo.kedro02").create()

@@ -5,6 +5,7 @@ generated using Kedro 0.18.3
 
 import logging
 from typing import Any, Dict, Tuple
+import os
 
 import numpy as np
 import pandas as pd
@@ -81,3 +82,8 @@ def report_accuracy(y_pred: pd.Series, y_test: pd.Series):
     accuracy = (y_pred == y_test).sum() / len(y_test)
     logger = logging.getLogger(__name__)
     logger.info("Model has accuracy of %.3f on test data.", accuracy)
+
+    principal = os.getenv("PRINCIPAL")
+    
+    secho("get env principal:",fg="green")
+    secho(principal,fg="red")

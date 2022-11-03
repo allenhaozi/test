@@ -7,6 +7,8 @@ from kedro.io import DataCatalog
 from kedro.pipeline import Pipeline
 from kedro.pipeline.node import Node
 
+from pandas_iris_02.hooks.hadoop_conf_tool import HadoopConfTool
+
 
 class KedroHookDemoHooks:
     @hook_impl
@@ -22,6 +24,21 @@ class KedroHookDemoHooks:
         Args:
             context: The context that was created.
         """
+
+        #base_path = context.project_path()
+
+        conf_dir = "/Users/mahao/openaios/test/11-hadoop-conf/hadoop.114/etc"
+
+        tool = HadoopConfTool()
+        #endpoint = "http://172.27.70.21:30727/metaxis/api"
+        endpoint = "http://172.27.128.114:32266/metaxis/api"
+        ss_fqn = "mllite"
+        tool.generate_hadoop_conf(
+            metaxis_endpoint=endpoint,
+            ss_fqn=ss_fqn,
+            hadoop_conf_dir=conf_dir
+        )
+
 
         secho("after context created start", fg="green")
         print(args)

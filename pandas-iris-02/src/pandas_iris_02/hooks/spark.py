@@ -50,7 +50,7 @@ class SparkHooks:
         endpoint = os.getenv('S3_DEV_ENDPOINT')
 
         builder = (
-            pyspark.sql.SparkSession.builder.appName("S3")
+            SparkSession.builder.appName("S3")
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
             .config(
                 "spark.sql.catalog.spark_catalog",
