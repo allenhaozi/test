@@ -5,7 +5,7 @@ generated using Kedro 0.18.3
 
 from kedro.pipeline import Pipeline, node, pipeline
 
-from .nodes import make_predictions, report_accuracy, split_data
+from .nodes import make_predictions, report_accuracy, split_data, test_generate_dataset
 
 
 def create_pipeline(**kwargs) -> Pipeline:
@@ -28,6 +28,13 @@ def create_pipeline(**kwargs) -> Pipeline:
                 inputs=["y_pred", "y_test"],
                 outputs=None,
                 name="report_accuracy",
-            ),
-        ]
+            )
+                    ]
     )
+
+
+
+
+# Spark — good practices: some common caveats and solutions
+# 
+#

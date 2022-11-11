@@ -72,3 +72,8 @@ def report_accuracy(y_pred: pd.Series, y_test: pd.Series):
     accuracy = (y_pred == y_test).sum() / len(y_test)
     logger = logging.getLogger(__name__)
     logger.info("Model has accuracy of %.3f on test data.", accuracy)
+
+def test_generate_dataset(test_catalog_01: pd.DataFrame):
+    
+    res = test_catalog_01.to_json()
+    print(res)
