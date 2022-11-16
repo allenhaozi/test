@@ -29,12 +29,5 @@ def create_pipeline(**kwargs) -> Pipeline:
                 outputs=None,
                 name="report_accuracy",
             )
-                    ]
+       ]
     )
-
-
-
-
-# Spark — good practices: some common caveats and solutions
-# 
-#
